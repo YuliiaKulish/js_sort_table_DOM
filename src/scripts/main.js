@@ -1,27 +1,46 @@
 'use strict';
 
+'use strict';
+
 document.addEventListener('DOMContentLoaded', () => {
   const table = document.querySelector('table');
+
+  if (!table) {
+    return;
+  }
+
   const headers = table.querySelectorAll('th');
 
   headers.forEach((header, index) => {
     header.addEventListener('click', () => {
-      const rows = Array.from(table.querySelectorAll('tbody tr'));
+      const tbody = table.querySelector('tbody');
+      const rows = Array.from(tbody.rows);
 
       rows.sort((a, b) => {
-        const cellA = a.children[index].textContent.trim();
-        const cellB = b.children[index].textContent.trim();
+        const rawA = a.children[index].textContent.trim();
+        const rawB = b.children[index].textContent.trim();
 
-        const cleanA = cellA.replace(/[^0-9.-]+/g, '');
-        const cleanB = cellB.replace(/[^0-9.-]+/g, '');
+        const cleanA = rawA.replace(/[^0-9.-]+/g, '');
+        const cleanB = rawB.replace(/[^0-9.-]+/g, '');
 
-        const valA = isNaN(cleanA) ? cleanA : parseFloat(cleanA);
-        const valB = isNaN(cleanB) ? cleanB : parseFloat(cleanB);
+        const numA =
+          cleanA !== '' && Number.isFinite(Number(cleanA))
+            ? Number(cleanA)
+            : null;
+        const numB =
+          cleanB !== '' && Number.isFinite(Number(cleanB))
+            ? Number(cleanB)
+            : null;
 
-        return valA > valB ? 1 : valA < valB ? -1 : 0;
+        if (numA !== null && numB !== null) {
+          return numA - numB;
+        }
+
+        const normA = rawA.toLowerCase();
+        const normB = rawB.toLowerCase();
+
+        return normA.localeCompare(normB, undefined, { sensitivity: 'base' });
       });
-
-      const tbody = table.querySelector('tbody');
 
       rows.forEach((row) => tbody.appendChild(row));
     });
