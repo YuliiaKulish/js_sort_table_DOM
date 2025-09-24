@@ -1,7 +1,5 @@
 'use strict';
 
-'use strict';
-
 document.addEventListener('DOMContentLoaded', () => {
   const table = document.querySelector('table');
 
@@ -14,11 +12,17 @@ document.addEventListener('DOMContentLoaded', () => {
   headers.forEach((header, index) => {
     header.addEventListener('click', () => {
       const tbody = table.querySelector('tbody');
-      const rows = Array.from(tbody.rows);
 
-      rows.sort((a, b) => {
-        const rawA = a.children[index].textContent.trim();
-        const rawB = b.children[index].textContent.trim();
+      if (!tbody) {
+        return;
+      }
+
+      const rows = Array.from(tbody.rows);
+      const indexed = rows.map((r, i) => ({ r, i }));
+
+      indexed.sort((a, b) => {
+        const rawA = (a.r.children[index]?.textContent || '').trim();
+        const rawB = (b.r.children[index]?.textContent || '').trim();
 
         const cleanA = rawA.replace(/[^0-9.-]+/g, '');
         const cleanB = rawB.replace(/[^0-9.-]+/g, '');
@@ -33,16 +37,27 @@ document.addEventListener('DOMContentLoaded', () => {
             : null;
 
         if (numA !== null && numB !== null) {
-          return numA - numB;
+          if (numA !== numB) {
+            return numA - numB;
+          }
+        } else if (numA !== null) {
+          return -1;
+        } else if (numB !== null) {
+          return 1;
+        } else {
+          const cmp = rawA.localeCompare(rawB, undefined, {
+            sensitivity: 'base',
+          });
+
+          if (cmp !== 0) {
+            return cmp;
+          }
         }
 
-        const normA = rawA.toLowerCase();
-        const normB = rawB.toLowerCase();
-
-        return normA.localeCompare(normB, undefined, { sensitivity: 'base' });
+        return a.i - b.i;
       });
 
-      rows.forEach((row) => tbody.appendChild(row));
+      indexed.forEach(({ r }) => tbody.appendChild(r));
     });
   });
 });
